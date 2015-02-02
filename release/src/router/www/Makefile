@@ -339,12 +339,12 @@ ifneq ($(RTCONFIG_ROG),y)
 	rm -rf $(INSTALLDIR)/www/images/New_ui/indicator.png
 	rm -rf $(INSTALLDIR)/www/images/New_ui/speedmeter.png
 endif
-ifneq ($(BUILD_NAME),RT-AC3200)
-	rm -rf $(INSTALLDIR)/www/TrafficAnalyzer_Statistic.asp.asp
-	rm -rf $(INSTALLDIR)/www/statistic_default.js
-	rm -rf $(INSTALLDIR)/www/chart.js
-	rm -rf $(INSTALLDIR)/www/datepicker.css
-endif
+#ifneq ($(BUILD_NAME),RT-AC3200)
+#	rm -rf $(INSTALLDIR)/www/TrafficAnalyzer_Statistic.asp.asp
+#	rm -rf $(INSTALLDIR)/www/statistic_default.js
+#	rm -rf $(INSTALLDIR)/www/chart.js
+#	rm -rf $(INSTALLDIR)/www/datepicker.css
+#endif
 endif
 ifneq ($(RTCONFIG_ADBLOCK),y)
 	rm -rf $(INSTALLDIR)/www/AiProtection_AdBlock.asp
