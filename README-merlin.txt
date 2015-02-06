@@ -646,6 +646,8 @@ https://github.com/RMerl/asuswrt-merlin
 History
 -------
 378.50 (xx-xxx-2015)
+   - NEW: Merged with GPL 378_4129.  This brings a few fixes, including
+          one for the loopback on DPI-enabled devices.
    - CHANGED: Reverted back to vsftpd 2.x, as 3.0.2 doesn't work properly
               on MIPS architectures (and possibly other particular
               scenarios as well).
