@@ -31,7 +31,7 @@ package Language;
 
 BEGIN
 {
-  my $perllibdir = $ENV{'perllibdir'} || '/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/automake-1.11';
+  my $perllibdir = $ENV{'perllibdir'} || '/home/merlin/asuswrt/release/src-rt-6.x.4708/toolchains/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/automake-1.11';
   unshift @INC, (split ':', $perllibdir);
 
   # Override SHELL.  This is required on DJGPP so that system() uses
@@ -41,7 +41,7 @@ BEGIN
   # it turns up other systems need the same thing.  After all,
   # if SHELL is used, ./configure's SHELL is always better than
   # the user's SHELL (which may be something like tcsh).
-  $ENV{'SHELL'} = '/bin/sh' if exists $ENV{'DJDIR'};
+  $ENV{'SHELL'} = '/bin/bash' if exists $ENV{'DJDIR'};
 }
 
 use Automake::Struct;

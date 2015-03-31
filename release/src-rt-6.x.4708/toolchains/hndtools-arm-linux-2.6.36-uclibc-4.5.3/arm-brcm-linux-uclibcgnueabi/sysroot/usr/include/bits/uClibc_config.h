@@ -7,7 +7,7 @@
 #define __UCLIBC_SUBLEVEL__ 32
 /* Automatically generated make config: don't edit */
 /* Version: 0.9.32.1 */
-/* Tue Jun 12 11:43:33 2012 */
+/* Mon Mar 30 20:31:11 2015 */
 #undef __TARGET_alpha__
 #define __TARGET_arm__ 1
 #undef __TARGET_avr32__
@@ -73,7 +73,7 @@
 #define __DO_C99_MATH__ 1
 #undef __DO_XSI_MATH__
 #undef __UCLIBC_HAS_FENV__
-#define __KERNEL_HEADERS__ "/projects/toolchains_build/buildroot-2012.02-brcm/output/toolchain/linux/include"
+#define __KERNEL_HEADERS__ "/home/merlin/soft/toolchain/buildroot-2012.02/output/toolchain/linux/include"
 #define __HAVE_DOT_CONFIG__ 1
 
 /* General Library Settings */
@@ -241,7 +241,7 @@
 #define __UCLIBC_BUILD_NOEXECSTACK__ 1
 
 /* uClibc development/debugging options */
-#define __CROSS_COMPILER_PREFIX__ "/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/arm-brcm-linux-uclibcgnueabi-"
+#define __CROSS_COMPILER_PREFIX__ "/home/merlin/asuswrt/release/src-rt-6.x.4708/toolchains/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/arm-brcm-linux-uclibcgnueabi-"
 #define __UCLIBC_EXTRA_CFLAGS__ ""
 #undef __DODEBUG__
 #undef __DODEBUG_PT__

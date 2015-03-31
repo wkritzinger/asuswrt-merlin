@@ -70,7 +70,7 @@ __END_NAMESPACE_STD
 #ifdef	__USE_ISOC99
 __BEGIN_NAMESPACE_C99
 
-//extern int isblank(int __c) __THROW;
+extern int isblank(int __c) __THROW;
 
 __END_NAMESPACE_C99
 #endif

@@ -198,14 +198,19 @@ struct in_addr
 /* IPv6 address */
 struct in6_addr
   {
-        union {
-                uint8_t            u6_addr8[16];
-                uint16_t           u6_addr16[8];
-                uint32_t           u6_addr32[4];
-        } in6_u;
-#define s6_addr                 in6_u.u6_addr8
-#define s6_addr16               in6_u.u6_addr16
-#define s6_addr32               in6_u.u6_addr32
+    union
+      {
+	uint8_t	__u6_addr8[16];
+#if defined __USE_MISC || defined __USE_GNU
+	uint16_t __u6_addr16[8];
+	uint32_t __u6_addr32[4];
+#endif
+      } __in6_u;
+#define s6_addr			__in6_u.__u6_addr8
+#if defined __USE_MISC || defined __USE_GNU
+# define s6_addr16		__in6_u.__u6_addr16
+# define s6_addr32		__in6_u.__u6_addr32
+#endif
   };
 
 #define IN6ADDR_ANY_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } }

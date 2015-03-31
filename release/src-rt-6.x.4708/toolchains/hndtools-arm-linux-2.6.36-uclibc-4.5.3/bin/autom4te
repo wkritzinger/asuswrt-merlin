@@ -25,14 +25,14 @@ eval 'case $# in 0) exec /usr/bin/perl -S "$0";; *) exec /usr/bin/perl -S "$0" "
 
 BEGIN
 {
-  my $pkgdatadir = $ENV{'autom4te_perllibdir'} || '/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/autoconf';
+  my $pkgdatadir = $ENV{'autom4te_perllibdir'} || '/home/merlin/asuswrt/release/src-rt-6.x.4708/toolchains/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/autoconf';
   unshift @INC, $pkgdatadir;
 
   # Override SHELL.  On DJGPP SHELL may not be set to a shell
   # that can handle redirection and quote arguments correctly,
   # e.g.: COMMAND.COM.  For DJGPP always use the shell that configure
   # has detected.
-  $ENV{'SHELL'} = '/bin/sh' if ($^O eq 'dos');
+  $ENV{'SHELL'} = '/bin/bash' if ($^O eq 'dos');
 }
 
 use Autom4te::C4che;
@@ -45,7 +45,7 @@ use File::Basename;
 use strict;
 
 # Data directory.
-my $pkgdatadir = $ENV{'AC_MACRODIR'} || '/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/autoconf';
+my $pkgdatadir = $ENV{'AC_MACRODIR'} || '/home/merlin/asuswrt/release/src-rt-6.x.4708/toolchains/hndtools-arm-linux-2.6.36-uclibc-4.5.3/share/autoconf';
 
 # $LANGUAGE{LANGUAGE} -- Automatic options for LANGUAGE.
 my %language;
@@ -88,7 +88,7 @@ my @include;
 my $freeze = 0;
 
 # $M4.
-my $m4 = $ENV{"M4"} || '/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/m4';
+my $m4 = $ENV{"M4"} || '/home/merlin/asuswrt/release/src-rt-6.x.4708/toolchains/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/m4';
 # Some non-GNU m4's don't reject the --help option, so give them /dev/null.
 fatal "need GNU m4 1.4 or later: $m4"
   if system "$m4 --help </dev/null 2>&1 | grep reload-state >/dev/null";
@@ -463,7 +463,7 @@ sub handle_m4 ($@)
   #
   # We don't output directly to the cache files, to avoid problems
   # when we are interrupted (that leaves corrupted files).
-  xsystem ("$m4 "
+  xsystem ("$m4 --gnu"
 	   . join (' --include=', '', map { shell_quote ($_) } @include)
 	   . ' --debug=aflq'
 	   . (!exists $ENV{'AUTOM4TE_NO_FATAL'} ? ' --fatal-warning' : '')
