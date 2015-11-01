@@ -309,8 +309,11 @@ void start_vpnclient(int clientNum)
 
 		sprintf(&buffer[0], "vpn_crt_client%d_crl", clientNum);
 		if ( !ovpn_crt_is_empty(&buffer[0]) )
-			fprintf(fp, "secret static.key\n");
+			fprintf(fp, "crl-verify crl.pem\n");
 
+		sprintf(&buffer[0], "vpn_crt_client%d_extra", clientNum);
+		if ( !ovpn_crt_is_empty(&buffer[0]) )
+			fprintf(fp, "extra-certs extra.pem\n");
 	}
 	else if ( cryptMode == SECRET )
 	{
@@ -396,6 +399,17 @@ void start_vpnclient(int clientNum)
 			fp = fopen(&buffer[0], "w");
 			chmod(&buffer[0], S_IRUSR|S_IWUSR);
 			sprintf(&buffer[0], "vpn_crt_client%d_crl", clientNum);
+			fprintf(fp, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
+			fclose(fp);
+		}
+
+		sprintf(&buffer[0], "vpn_crt_client%d_extra", clientNum);
+		if ( !ovpn_crt_is_empty(&buffer[0]) )
+		{
+			sprintf(&buffer[0], "/etc/openvpn/client%d/extra.pem", clientNum);
+			fp = fopen(&buffer[0], "w");
+			chmod(&buffer[0], S_IRUSR|S_IWUSR);
+			sprintf(&buffer[0], "vpn_crt_client%d_extra", clientNum);
 			fprintf(fp, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
 			fclose(fp);
 		}
@@ -730,7 +744,6 @@ void start_vpnserver(int serverNum)
 	chmod(&buffer[0], S_IRUSR|S_IWUSR);
 	fprintf(fp, "# Automatically generated configuration\n");
 	fprintf(fp, "daemon\n");
-	fprintf(fp, "topology subnet\n");
 
 	sprintf(&buffer[0], "/etc/openvpn/server%d/client.ovpn", serverNum);
 	fp_client = fopen(&buffer[0], "w");
@@ -740,6 +753,7 @@ void start_vpnserver(int serverNum)
 	{
 		if ( ifType == TUN )
 		{
+			fprintf(fp, "topology subnet\n");
 			sprintf(&buffer[0], "vpn_server%d_sn", serverNum);
 			fprintf(fp, "server %s ", nvram_safe_get(&buffer[0]));
 			sprintf(&buffer[0], "vpn_server%d_nm", serverNum);
@@ -1021,6 +1035,10 @@ void start_vpnserver(int serverNum)
 		sprintf(&buffer[0], "vpn_crt_server%d_crl", serverNum);
 		if ( !ovpn_crt_is_empty(&buffer[0]) )
 			fprintf(fp, "crl-verify crl.pem\n");
+		sprintf(&buffer[0], "vpn_crt_server%d_extra", serverNum);
+		if ( !ovpn_crt_is_empty(&buffer[0]) )
+			fprintf(fp, "extra-certs extra.pem\n");
+
 	}
 	else if ( cryptMode == SECRET )
 	{
@@ -1181,6 +1199,18 @@ void start_vpnserver(int serverNum)
 				fprintf(fp, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
 				fclose(fp);
 			}
+
+			sprintf(&buffer[0], "vpn_crt_server%d_extra", serverNum);
+			if ( !ovpn_crt_is_empty(&buffer[0]) )
+			{
+				sprintf(&buffer[0], "/etc/openvpn/server%d/extra.pem", serverNum);
+				fp = fopen(&buffer[0], "w");
+				chmod(&buffer[0], S_IRUSR|S_IWUSR);
+				sprintf(&buffer[0], "vpn_crt_server%d_extra", serverNum);
+				fprintf(fp, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
+				fclose(fp);
+			}
+
 		}
 
 		sprintf(&buffer[0], "vpn_crt_server%d_ca", serverNum);
@@ -1188,6 +1218,14 @@ void start_vpnserver(int serverNum)
 		fprintf(fp_client, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
 		if (buffer2[strlen(buffer2)-1] != '\n') fprintf(fp_client, "\n");	// Append newline if missing
 		fprintf(fp_client, "</ca>\n");
+
+		sprintf(&buffer[0], "vpn_crt_server%d_extra", serverNum);
+		if ( !ovpn_crt_is_empty(&buffer[0]) ) {
+			fprintf(fp_client, "<extra-certs>\n");
+			fprintf(fp_client, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
+			if (buffer2[strlen(buffer2)-1] != '\n') fprintf(fp_client, "\n");       // Append newline if missing
+			fprintf(fp_client, "</extra-certs>\n");
+		}
 
 		// Only do this if we do not have both userauth and useronly enabled at the same time
 		if ( !(userauth && useronly) ) {
@@ -1532,8 +1570,9 @@ void start_vpn_eas()
 	}
 
 	// Setup client routing in case some are set to be blocked when tunnel is down
-	update_vpnrouting(1);
-	update_vpnrouting(2);
+	for( i = 1; i < 6; i++ ) {
+		update_vpnrouting(i);
+	}
 
 	// Parse and start clients
 	strlcpy(&buffer[0], nvram_safe_get("vpn_clientx_eas"), sizeof(buffer));

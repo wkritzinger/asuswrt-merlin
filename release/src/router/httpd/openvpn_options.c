@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <shared.h>
 #include "httpd.h"
@@ -452,6 +453,7 @@ add_option (char *p[], int line, int unit)
 			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
 			fp = fopen(file_path, "w");
 			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
 				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
 				fclose(fp);
 			}
@@ -473,6 +475,7 @@ add_option (char *p[], int line, int unit)
 			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
 			fp = fopen(file_path, "w");
 			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
 				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
 				fclose(fp);
 			}
@@ -494,6 +497,7 @@ add_option (char *p[], int line, int unit)
 			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
 			fp = fopen(file_path, "w");
 			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
 				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
 				fclose(fp);
 			}
@@ -515,6 +519,7 @@ add_option (char *p[], int line, int unit)
 			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
 			fp = fopen(file_path, "w");
 			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
 				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
 				fclose(fp);
 			}
@@ -542,6 +547,7 @@ add_option (char *p[], int line, int unit)
 			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
 			fp = fopen(file_path, "w");
 			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
 				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
 				fclose(fp);
 			}
@@ -554,6 +560,29 @@ add_option (char *p[], int line, int unit)
 			return VPN_UPLOAD_NEED_STATIC;
 		}
 	}
+	else if (streq (p[0], "extra-certs") && p[1])
+	{
+		if (streq (p[1], INLINE_FILE_TAG) && p[2])
+		{
+			sprintf(buf, "vpn_crt_client%d_extra", unit);
+#if defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS)
+			snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, buf);
+			fp = fopen(file_path, "w");
+			if(fp) {
+				chmod(file_path, S_IRUSR|S_IWUSR);
+				fprintf(fp, "%s", strstr(p[2], "-----BEGIN"));
+				fclose(fp);
+			}
+			else
+#endif
+			write_encoded_crt(buf, strstr(p[2], "-----BEGIN"));
+		}
+		else
+		{
+			return VPN_UPLOAD_NEED_EXTRA;
+		}
+	}
+
 	else if (streq (p[0], "auth-user-pass"))
 	{
 		sprintf(buf, "vpn_client%d_userauth", unit);
@@ -694,7 +723,7 @@ void reset_client_setting(int unit){
 	snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, nv);
 	unlink(file_path);
 #endif
-	sprintf(nv, "vpn_crt_client%d_crl", unit);
+	sprintf(nv, "vpn_crt_client%d_extra", unit);
 	nvram_set(nv, "");
 #if defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS)
 	snprintf(file_path, sizeof(file_path) -1, "%s/%s", OVPN_FS_PATH, nv);

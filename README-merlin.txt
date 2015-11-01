@@ -1,5 +1,5 @@
-Asuswrt-Merlin - build 378.56 (xx-xxxx-2015)
-============================================
+Asuswrt-Merlin - build 378.56 (25-Oct-2015)
+===========================================
 
 About
 -----
@@ -36,6 +36,7 @@ Supported devices are:
  * RT-AC68P
  * RT-AC87U
  * RT-AC3200
+ * RT-AC88U
 
 Devices that are no longer officially supported (but forked builds might
 exist from other developers):
@@ -54,7 +55,7 @@ Here is a list of features that Asuswrt-merlin adds over the original
 firmware:
 
 System:
-   - Based on 3.0.0.4.378_7838 source code from Asus
+   - Based on 3.0.0.4.378_9177 source code from Asus
    - Various bugfixes and optimizations
    - Some components were updated to newer versions, for improved
      stability and security
@@ -107,6 +108,7 @@ Web interface:
    - Wireless site survey
    - Advanced Wireless client list display, including automated refresh
    - Redesigned layout of the various System Log sections
+   - Editable fields for some pages
 
 
 A few features that first appeared in Asuswrt-Merlin have since been 
@@ -659,7 +661,7 @@ should be routed through the tunnel, rather than having all of your
 traffic automatically routed through it.
 
 On the OpenVPN Clients page, set "Redirect Internet traffic" to 
-"Policy RUles".  A new section will appear below, where you can 
+"Policy Rules".  A new section will appear below, where you can 
 add routing rules.  The "Source IP" is your local client, while 
 "Destination" is the remote server on the Internet.  The field can be 
 left empty (or set to 0.0.0.0) to signify "any IP".  You can also 

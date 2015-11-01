@@ -30,6 +30,8 @@ struct nvram_tuple router_defaults[] = {
 	{ "restore_defaults",	"0"	},	// Set to 0 to not restore defaults on boot
 #ifdef RPAC68U
 	{ "sw_mode", "2" 		}, 	// big switch for different mode
+#elif defined(RTCONFIG_DEFAULT_AP_MODE)
+	{ "sw_mode", "3"		},	// big switch for different mode
 #else
 	{ "sw_mode", "1" 		}, 	// big switch for different mode
 #endif
@@ -254,7 +256,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "wl_plcphdr", "long", 0 },		/* 802.11b PLCP preamble type */
 #ifdef RTCONFIG_RALINK
 	{ "wl_nmode_protection", "auto", 0},	/* 802.11n protection */
-#elif defined(RTCONFIG_QCA)
+#elif defined(RTCONFIG_QCA) || defined(RTCONFIG_BCM_7114)
 	{ "wl_nmode_protection", "auto", 0},	/* 802.11n protection */
 #else
 	{ "wl_gmode", XSTR(GMODE_AUTO), 0 },	/* 54g mode */
@@ -265,7 +267,6 @@ struct nvram_tuple router_defaults[] = {
 #else
 	{ "wl_optimizexbox", "0"},		/* Optimize WiFi packet for Xbox */
 #endif
-	{ "wl_frameburst", "on"},		/* BRCM Frambursting mode (off|on) */
 	{ "wl_wme", "auto", 0 },		/* WME mode (off|on|auto) */
 #ifdef RTCONFIG_RALINK
 #elif defined(RTCONFIG_QCA)
@@ -334,24 +335,44 @@ struct nvram_tuple router_defaults[] = {
 #ifdef RTCONFIG_RALINK
 #elif defined(RTCONFIG_QCA)
 #else
+#if defined(RTCONFIG_BCM_7114)
+	{ "wl_ampdu_rtylimit_tid", "5 5 5 5 5 5 5 5", 0 },
+	{ "wl_ampdu_rr_rtylimit_tid", "2 2 2 2 2 2 2 2", 0 },
+#else
 	/* Default AMPDU retry limit per-tid setting */
 	{ "wl_ampdu_rtylimit_tid", "7 7 7 7 7 7 7 7", 0 },
 	/* Default AMPDU regular rate retry limit per-tid setting */
 	{ "wl_ampdu_rr_rtylimit_tid", "3 3 3 3 3 3 3 3", 0 },
+#endif
 	{ "wl_amsdu", "auto", 0 },		/* Default AMSDU setting */
-#if defined (RTCONFIG_BCMARM) && !defined (RTCONFIG_BCM7)
+#if defined (RTCONFIG_BCMARM) && !defined (RTCONFIG_BCM7) && !defined (RTCONFIG_BCM_7114)
 	{ "wl_rx_amsdu_in_ampdu", "auto", 0 },	/* Default RX AMSDU In AMPDU setting */
 #endif
 	{ "wl_obss_coex", "1", 0 },		/* Default OBSS Coexistence setting - OFF */
 #ifdef RTCONFIG_BCMWL6
+#if !defined (RTCONFIG_BCM7) && !defined (RTCONFIG_BCM_7114)
 	{ "wl_ack_ratio", "0"},
+#endif
 	{ "wl_ampdu_mpdu", "0"},
 	{ "wl_ampdu_rts", "1"},
 #ifdef RTCONFIG_BCMARM
+#ifdef RTCONFIG_BCM_7114
+	{ "wl_turbo_qam", "2"},
+#else
 	{ "wl_turbo_qam", "1"},
 #endif
+#ifdef RTCONFIG_BCM_7114
+	{ "wl0_turbo_qam", "2"},
+#else
+	{ "wl0_turbo_qam", "1"},
 #endif
-#endif
+#ifdef RTCONFIG_BCM_7114
+	{ "wl1_turbo_qam", "2"},
+	{ "wl2_turbo_qam", "2"},
+#endif	// BCM_7114
+#endif	// BCMARM
+#endif	// BCMWL6
+#endif	// RALINK
 	/* WPA parameters */
 	{ "wl_auth_mode", "none", 0 },		/* Network authentication mode (radius|none) */
 	{ "wl_wpa_psk", "", 0 },		/* WPA pre-shared key */
@@ -499,39 +520,39 @@ struct nvram_tuple router_defaults[] = {
 #if defined (RTCONFIG_WIRELESSREPEATER) || defined (RTCONFIG_PROXYSTA)
 #if defined (RTCONFIG_CONCURRENTREPEATER)
 	/* 2.4GHz */
-	{ "wlc0_list",                  ""      },
-	{ "wlc0_ssid",                  ""      },
-	{ "wlc0_wep",                   ""      },
-	{ "wlc0_key",                   ""      },
-	{ "wlc0_wep_key",               ""      },
-	{ "wlc0_auth_mode",             ""      },
-	{ "wlc0_crypto",                ""      },
-	{ "wlc0_wpa_psk",               ""      },
-	{ "wlc0_state", 		"0"	},
-	{ "wlc0_sbstate", 		"0"	},
-	{ "wlc0_scan_state", 		"0"	},
-	{ "wlc0_mode", 			"0"	},
-	{ "wlc0_ure_ssid",              ""      },
+	{ "wlc0_list",			""	},
+	{ "wlc0_ssid",			""	},
+	{ "wlc0_wep",			""	},
+	{ "wlc0_key",			""	},
+	{ "wlc0_wep_key",		""	},
+	{ "wlc0_auth_mode",		""	},
+	{ "wlc0_crypto",		""	},
+	{ "wlc0_wpa_psk",		""	},
+	{ "wlc0_state",			"0"	},
+	{ "wlc0_sbstate",		"0"	},
+	{ "wlc0_scan_state",		"0"	},
+	{ "wlc0_mode",			"0"	},
+	{ "wlc0_ure_ssid",		""	},
 	/* 5GHz */
-	{ "wlc1_list",                  ""      },
-	{ "wlc1_ssid",                  ""      },
-	{ "wlc1_wep",                   ""      },
-	{ "wlc1_key",                   ""      },
-	{ "wlc1_wep_key",               ""      },
-	{ "wlc1_auth_mode",             ""      },
-	{ "wlc1_crypto",                ""      },
-	{ "wlc1_wpa_psk",               ""      },
+	{ "wlc1_list",			""	},
+	{ "wlc1_ssid",			""	},
+	{ "wlc1_wep",			""	},
+	{ "wlc1_key",			""	},
+	{ "wlc1_wep_key",		""	},
+	{ "wlc1_auth_mode",		""	},
+	{ "wlc1_crypto",		""	},
+	{ "wlc1_wpa_psk",		""	},
 	{ "wlc1_state", 		"0"	},
 	{ "wlc1_sbstate", 		"0" 	},
 	{ "wlc1_scan_state", "0"},
-	{ "wlc1_mode",		        "0"	},
-	{ "wlc1_ure_ssid",              ""	},
+	{ "wlc1_mode",			"0"	},
+	{ "wlc1_ure_ssid",		""	},
 #ifndef RTCONFIG_BCMWL6
-	{ "wlc0_nbw_cap",               ""      },
-	{ "wlc1_nbw_cap",               ""      },
+	{ "wlc0_nbw_cap",		""	},
+	{ "wlc1_nbw_cap",		""	},
 #else
-	{ "wlc0_bw_cap",                ""      },
-	{ "wlc1_bw_cap",                ""      },
+	{ "wlc0_bw_cap",		""	},
+	{ "wlc1_bw_cap",		""	},
 #endif
 #else
 	{ "wlc_list",			""	},
@@ -550,7 +571,7 @@ struct nvram_tuple router_defaults[] = {
 #endif
 	{ "wlc_ure_ssid",		""	},
 #endif
-	{ "wlc_express",                "0"     },      /* 0: disabled, 1: 2.4GHz, 2: 5GHz */
+	{ "wlc_express",		"0"	},	/* 0: disabled, 1: 2.4GHz, 2: 5GHz */
 #endif
 #ifdef RTCONFIG_PROXYSTA
 	{ "wlc_psta",			"0"	},	/* 0: disabled, 1: Proxy STA, 2: Proxy STA Repeater */
@@ -583,8 +604,6 @@ struct nvram_tuple router_defaults[] = {
 //	{ "wl1_HT_TxStream", "2" }, // move to init_nvram for model dep.
 //	{ "wl1_HT_RxStream", "3" }, // move to init_nvram for model dep.
 	{ "wl_HT_STBC", "1" },
-	{ "wl_McastPhyMode", "0" },
-	{ "wl_McastMcs", "0" },
 	// the following for ralink 5g only
 	{ "wl_IEEE80211H", "0" },
 	{ "wl_CSPeriod", "10" },
@@ -666,7 +685,12 @@ struct nvram_tuple router_defaults[] = {
 	{ "wl_txbf_bfr_cap", "1", 0 },
 	{ "wl_txbf_bfe_cap", "1", 0 },
 #ifdef RTCONFIG_BCMARM
+#ifndef RTCONFIG_WIFILOGO
 	{ "wl_txbf_imp", "1", 0 },
+#else
+	{ "wl_txbf_imp", "0", 0 },
+
+#endif
 #else
 	{ "wl_txbf_timer", "25", 0 },
 #endif
@@ -732,21 +756,36 @@ struct nvram_tuple router_defaults[] = {
 	{"wl1_bsd_if_qualify_policy", "60 0x0", 0 },
 	{"wl2_bsd_if_qualify_policy", "0 0x4", 0 },
 	{"bsd_bounce_detect", "180 1 3600", 0 },
+	{"bsd_aclist_timeout", "1", 0},
 #elif RTAC5300
-        {"bsd_ifnames", "eth1 eth2 eth3", 0 },
-        {"wl0_bsd_steering_policy", "0 5 3 -52 0 110 0x22", 0 },
-        {"wl1_bsd_steering_policy", "80 5 3 -82 0 0 0x0", 0 },
-        {"wl2_bsd_steering_policy", "0 5 3 -82 0 0 0x8", 0 },
-        {"wl0_bsd_sta_select_policy", "2 -52 0 110 0 0 -1 0 0 0 0x122", 0 },
-        {"wl1_bsd_sta_select_policy", "2 -82 0 0 0 0 1 0 0 0 0x4", 0 },
-        {"wl2_bsd_sta_select_policy", "2 -82 0 0 0 0 1 0 0 0 0x8", 0 },
-        {"wl0_bsd_if_select_policy", "eth3 eth2", 0 },
-        {"wl1_bsd_if_select_policy", "eth1 eth3", 0 },
-        {"wl2_bsd_if_select_policy", "eth1 eth2", 0 },
-        {"wl0_bsd_if_qualify_policy", "0 0x0", 0 },
-        {"wl1_bsd_if_qualify_policy", "60 0x0", 0 },
-        {"wl2_bsd_if_qualify_policy", "0 0x4", 0 },
-        {"bsd_bounce_detect", "180 1 3600", 0 },
+	// Tri-Band
+	{"bsd_ifnames", "eth1 eth2 eth3", 0 },
+	{"wl0_bsd_steering_policy", "0 5 3 -52 0 110 0x22", 0 },
+	{"wl1_bsd_steering_policy", "80 5 3 -82 0 0 0x0", 0 },
+	{"wl2_bsd_steering_policy", "0 5 3 -82 0 0 0x8", 0 },
+	{"wl0_bsd_sta_select_policy", "2 -52 0 110 0 0 -1 0 0 0 0x122", 0 },
+	{"wl1_bsd_sta_select_policy", "2 -82 0 0 0 0 1 0 0 0 0x4", 0 },
+	{"wl2_bsd_sta_select_policy", "2 -82 0 0 0 0 1 0 0 0 0x8", 0 },
+	{"wl0_bsd_if_select_policy", "eth3 eth2", 0 },
+	{"wl1_bsd_if_select_policy", "eth1 eth3", 0 },
+	{"wl2_bsd_if_select_policy", "eth1 eth2", 0 },
+	{"wl0_bsd_if_qualify_policy", "0 0x0", 0 },
+	{"wl1_bsd_if_qualify_policy", "60 0x0", 0 },
+	{"wl2_bsd_if_qualify_policy", "0 0x4", 0 },
+	{"bsd_bounce_detect", "180 1 3600", 0 },
+	{"bsd_aclist_timeout", "1", 0},
+	// 5GHz Only
+	{"bsd_ifnames_x", "eth2 eth3", 0 },
+	{"wl1_bsd_steering_policy_x", "80 5 3 0 0 0 0x4", 0 },
+	{"wl2_bsd_steering_policy_x", "0 5 3 0 0 0 0x8", 0 },
+	{"wl1_bsd_sta_select_policy_x", "4 0 0 0 0 0 1 0 0 0 0x4", 0 },
+	{"wl2_bsd_sta_select_policy_x", "4 0 0 0 0 0 1 0 0 0 0x8", 0 },
+	{"wl1_bsd_if_select_policy_x", "eth3", 0 },
+	{"wl2_bsd_if_select_policy_x", "eth2", 0 },
+	{"wl1_bsd_if_qualify_policy_x", "60 0x2", 0 },
+	{"wl2_bsd_if_qualify_policy_x", "0 0x4", 0 },
+	{"bsd_bounce_detect_x", "180 1 3600", 0 },
+	{"bsd_aclist_timeout", "3", 0},
 #endif
 
 	{"bsd_scheme", "2", 0 },
@@ -755,7 +794,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "ssd_enable", "0", 0 },		/* Disable SSID Steer Daemon */
 	{ "wl_ssd_type", "0", 0 },		/* default ssd_type "disabled" */
 #endif
-#ifdef RTCONFIG_BCM7
+#if defined(RTCONFIG_BCM7) || defined(RTCONFIG_BCM_7114)
 	{ "wl_dfs_pref", "" },			/* DFS Preferred channel value */
 	{ "wl_probresp_mf", "0", 0 },		/* MAC filter based probe response */
 	{ "wl_probresp_sw", "1", 0 },		/* SW probe response */
@@ -817,8 +856,13 @@ struct nvram_tuple router_defaults[] = {
 #else
 	{ "lan_proto",			"static"	},	// DHCP server [static|dhcp]	//Barry add 2004 09 16
 #endif
+#if defined(RTN300)
+	{ "lan_ipaddr",			"192.168.50.1"	},	// LAN IP address
+	{ "lan_ipaddr_rt",		"192.168.50.1"	},
+#else
 	{ "lan_ipaddr",			"192.168.1.1"	},	// LAN IP address
 	{ "lan_ipaddr_rt",		"192.168.1.1"	},
+#endif
 	{ "lan_netmask",		"255.255.255.0"	},	// LAN netmask
 	{ "lan_netmask_rt",		"255.255.255.0" },
 	{ "lan_gateway",		"0.0.0.0"	},	// LAN Gateway
@@ -832,7 +876,11 @@ struct nvram_tuple router_defaults[] = {
 #endif
 	{ "lan_route",			""		},	// Static routes (ipaddr:netmask:gateway:metric:ifname ...)
 
+#if defined(RTCONFIG_DEFAULT_AP_MODE)
+	{ "lan_dnsenable_x", "1"},
+#else
 	{ "lan_dnsenable_x", "0"},
+#endif
 	{ "lan_dns1_x", ""},					/* x.x.x.x x.x.x.x ... */
 	{ "lan_dns2_x", ""},
 	{ "lan_dns_fwd_local", "0"},		/* Forward queries for local domain to upstream DNS server */
@@ -860,8 +908,13 @@ struct nvram_tuple router_defaults[] = {
 	// NVRAM for start_dhcpd
 	// DHCP server parameters
 	{ "dhcp_enable_x", "1" },
+#if defined(RTN300)
+	{ "dhcp_start", "192.168.50.2"},
+	{ "dhcp_end", "192.168.50.254"},
+#else
 	{ "dhcp_start", "192.168.1.2"},
 	{ "dhcp_end", "192.168.1.254"},
+#endif
 	{ "dhcp_lease", "86400" },
 	{ "dhcp_gateway_x", "" },
 	{ "dhcp_dns1_x", "" },
@@ -973,8 +1026,9 @@ struct nvram_tuple router_defaults[] = {
 #ifdef RTCONFIG_DSL
 	{ "wan_pppoe_auth", "" },
 #endif
-	/* Misc WAN parameters */
+	{ "wan_ppp_echo", "1"},
 
+	/* Misc WAN parameters */
 	{ "wan_desc", ""},		/* WAN connection description */
 	{ "wan_upnp_enable", "1"}, 	// upnp igd
 	{ "wan_pppoe_relay", "0" },
@@ -1052,7 +1106,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "dslx_diag_log_path", "" },
 #ifdef RTCONFIG_VDSL
 	{ "dslx_vdsl_bitswap", "1" },
-	{ "dslx_vdsl_vectoring", "0" },
+	{ "dslx_vdsl_vectoring", "1" },
 	{ "dslx_vdsl_nonstd_vectoring", "0" },
 	{ "dslx_vdsl_target_snrm", "32767" },
 	{ "dslx_vdsl_tx_gain_off", "32767" },
@@ -1346,7 +1400,7 @@ struct nvram_tuple router_defaults[] = {
 
 	// NVRAM for start_firewall
 	// Firewall
-#if defined (RTCONFIG_PARENTALCTRL) || defined(RTCONFIG_OLD_PARENTALCTRL)
+#ifdef RTCONFIG_PARENTALCTRL
 	{"MULTIFILTER_ALL", "0"},
 	{"MULTIFILTER_ENABLE", "" },
 	{"MULTIFILTER_MAC", "" },
@@ -1424,11 +1478,6 @@ struct nvram_tuple router_defaults[] = {
 	{ "keyword_date_x", "1111111"},
 	{ "keyword_time_x", "00002359"},
 	{ "keyword_rulelist", ""},
-
-	// MFList
-	{ "macfilter_enable_x", "0"},
-	{ "macfilter_num_x", "0"},
-	{ "macfilter_rulelist", ""},
 
 	// LWFilterListi
 	{ "fw_lw_enable_x", "0"},
@@ -1564,6 +1613,11 @@ struct nvram_tuple router_defaults[] = {
 	{ "ftp_lang", "EN" },
 	{ "ftp_wanac", "0"},
 
+#ifdef RTCONFIG_REBOOT_SCHEDULE
+	{ "reboot_schedule_enable", "0", 0},
+	{ "reboot_schedule", "00000000000", 0},
+#endif
+
 //#ifdef RTCONFIG_WEBDAV
 	{ "enable_webdav", "0"}, // 0: Disable, 1: enable
 	{ "st_webdav_mode", "2"}, // 0: http, 1: https, 2: both
@@ -1677,7 +1731,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "http_passwd", "admin" },
 	{ "http_enable", "0"}, // 0: http, 1: https, 2: both
 	{ "http_client", "0"},
-	{ "http_clientlist", "0"},
+	{ "http_clientlist", ""},
 	{ "http_autologout", "30"},
 	{ "custom_clientlist", ""},	// for custom client list
 
@@ -1789,6 +1843,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "modem_bytes_data_warning", "0"}, /* 0: disabled */
 	{ "modem_bytes_data_save", "1800"}, // the interval to save the data usage. need to be 30 times.
 #endif
+	{ "modem_mtu", "0"}, // 0: auto, 576 <= x < interface mtu
 #endif
 
 	{ "udpxy_enable_x", "0"},
@@ -1891,6 +1946,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "vpn_server_unit",		"1"		},
 	{ "vpn_serverx_start",		""		},
 	{ "vpn_serverx_dns",		""		},
+	{ "vpn_serverx_clientlist",	""		},
 	{ "vpn_server_poll",		"0"		},
 	{ "vpn_server_if",		"tun"		},
 	{ "vpn_server_proto",		"udp"		},
@@ -1919,7 +1975,6 @@ struct nvram_tuple router_defaults[] = {
 	{ "vpn_server_custom",		""		},
 	{ "vpn_server_igncrt",		"1"		},
 	{ "vpn_server_userpass_auth",	"0"		},
-	{ "vpn_serverx_clientlist",	""		},
 	{ "vpn_server1_poll",		"0"		},
 	{ "vpn_server1_if",		"tun"		},
 	{ "vpn_server1_proto",		"udp"		},
@@ -2248,6 +2303,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "pushnotify_diskmonitor", "1"},
 	{ "PM_attach_syslog", ""},
 	{ "PM_attach_cfgfile", ""},
+	{ "PM_attach_modemlog", ""},
 	{ "fb_country", ""},
 	{ "fb_email", ""},
 	{ "fb_comment", ""},
@@ -2389,6 +2445,7 @@ struct nvram_tuple router_defaults[] = {
 #endif
 #if defined(RTCONFIG_TR069)
 	{ "tr_enable", "0"},
+	{ "tr_discovery", "0" },
 	{ "tr_inform_enable", "1"},
 	{ "tr_inform_interval", "86400"},
 	{ "tr_acs_url", ""},
@@ -2412,15 +2469,21 @@ struct nvram_tuple router_defaults[] = {
 #endif
 	{ "rast_idlrt",			"2"},		/* roaming assistant idle rate (Kbps) */
 #endif
-	{ "webui_resolve_conn", "0"},
-	{ "led_disable", "0"},
-
+	{ "webui_resolve_conn",		"0"},
+	{ "led_disable",		"0"},
+	{ "custom_clientlist",		""},		/* for customize device name */
+	{ "nmp_client_list",		""},
+	{ "ttl_inc_enable",		"0"},		/* enable TTL increment */
 #ifdef RTCONFIG_TOR
 	{ "Tor_enable",                 "0"},           /* enable Tor Transparent Proxy */
 	{ "Tor_socksport",              "9050"},
 	{ "Tor_transport",              "9040"},
 	{ "Tor_dnsport",                "9053"},
 	{ "Tor_redir_list",             ""},
+#endif
+#ifdef RTCONFIG_JFFS2USERICON
+	{ "custom_usericon",	""},
+	{ "custom_usericon_del",	""},
 #endif
 #ifdef RTCONFIG_TRAFFIC_CONTROL
 	{ "traffic_control_enable", "0"},
@@ -2433,10 +2496,14 @@ struct nvram_tuple router_defaults[] = {
 #ifdef RTCONFIG_CLOUDCHECK
 	{ "enable_cloudcheck",	"0"},
 #endif
+#ifdef RTCONFIG_BCMARM
+	{ "drop_caches", "1"},
+#endif
 #ifdef RTCONFIG_RESTRICT_GUI
 	{ "fw_restrict_gui",	"0"},
 	{ "fw_restrict_gui_mac",	""},
 #endif
+#ifdef RTCONFIG_KEY_GUARD
 	{ "kg_enable",	"0"},
 	{ "kg_wan_enable",	"1"},
 	{ "kg_powersaving_enable",	"1"},
@@ -2445,6 +2512,19 @@ struct nvram_tuple router_defaults[] = {
 	{ "kg_device_enable",	""},
 	{ "kg_devicename",	""},
 	{ "kg_mac",	""},
+#endif
+#ifdef RTCONFIG_WTFAST
+	{ "wtf_username", ""},
+	{ "wtf_passwd", ""},
+	{ "wtf_account_type", ""},
+	{ "wtf_max_clients", ""},
+	{ "wtf_rulelist", ""},
+	{ "wtf_login", 	""},
+#endif
+	{ "guard_mode",	"0"},
+#ifdef RTCONFIG_BCM_7114
+	{ "stop_tweak_usb",	"1"},
+#endif
 	{ NULL, NULL }
 }; // router_defaults
 
@@ -2777,6 +2857,7 @@ struct nvram_tuple router_state_defaults[] = {
 	{ "dsllog_interleavedepthdown", ""},
 	{ "dsllog_interleavedepthup", ""},
 	{ "dsllog_tcm", ""},
+	{ "dsllog_vdslcurrentprofile", ""},
 #endif
 
 #endif
@@ -2794,14 +2875,7 @@ struct nvram_tuple router_state_defaults[] = {
 	{ "data_usage_cycle", "30"},
 	{ "data_usage_limit", "8"},
 	{ "data_usage_warning", "6"},
-	{ "sim_mtu", "1492"},
 	{ "modem_idletime", "600"},
-	{ "nmp_client_list",		""},
-	{ "ttl_inc_enable",		"0"},		/* enable TTL increment */
-#ifdef RTCONFIG_JFFS2USERICON
-	{ "custom_usericon",	""},
-	{ "custom_usericon_del",	""},
-#endif
 	{ NULL, NULL }
 };
 
@@ -4445,7 +4519,7 @@ struct nvram_tuple bcm4360ac_defaults[] = {
 #endif
 	{ 0, 0, 0 }
 };
-#elif defined(RTAC1200G)
+#elif defined(RTAC1200G) || defined(RTAC1200GP)
 struct nvram_tuple bcm4360ac_defaults[] = {
 	{ "0:xtalfreq", "20000", 0 },
 	{ "0:opo", "68", 0 },
@@ -4474,7 +4548,7 @@ struct nvram_tuple bcm4360ac_defaults[] = {
 	{ "0:ledbh0", "11", 0 },
 	{ "0:ledbh1", "11", 0 },
 	{ "0:ledbh2", "11", 0 },
-	{ "0:ledbh3", "2", 0 },
+	{ "0:ledbh3", "7", 0 },
 	{ "0:leddc", "0xFFFF", 0 },
 	{ "0:temps_period", "5", 0 },
 	{ "0:tempthresh", "120", 0 },
@@ -4535,7 +4609,7 @@ struct nvram_tuple bcm4360ac_defaults[] = {
 	{"sb/1/ledbh1", "11", 0 },
 	{"sb/1/ledbh2", "11", 0 },
 	{"sb/1/ledbh3", "11", 0 },
-	{"sb/1/ledbh11", "0x2", 0 },
+	{"sb/1/ledbh11", "0x7", 0 },
 	{"sb/1/leddc", "0xFFFF", 0 },
 	{"sb/1/temps_period", "5", 0 },
 	{"sb/1/tempthresh", "120", 0 },
@@ -4543,7 +4617,7 @@ struct nvram_tuple bcm4360ac_defaults[] = {
 	{"sb/1/phycal_tempdelta", "15", 0 },
 	{"sb/1/tempoffset", "0", 0 },
 	{0, 0, 0 }
-}; 
+};
 #else
 struct nvram_tuple bcm4360ac_defaults[] = {
 	{ "0:ledbh10", "7", 0 },
@@ -4554,6 +4628,16 @@ struct nvram_tuple bcm4360ac_defaults[] = {
 	{ "1:ledbh0", "7", 0 },
 	{ "1:ledbh9", "7", 0 },
 #endif
+	{ "0:temps_period", "5", 0 },
+	{ "0:tempthresh", "120", 0 },
+	{ "0:temps_hysteresis", "5", 0 },
+	{ "0:phycal_tempdelta", "0", 0 },
+	{ "0:tempoffset", "0", 0 },
+	{ "1:temps_period", "5", 0 },
+	{ "1:tempthresh", "120", 0 },
+	{ "1:temps_hysteresis", "5", 0 },
+	{ "1:phycal_tempdelta", "0", 0 },
+	{ "1:tempoffset", "0", 0 },
 	{ 0, 0, 0 }
 };
 #endif
@@ -4608,12 +4692,14 @@ struct nvram_tuple router_defaults_override_type1[] = {
 #endif
 #endif
 	{ "wl_amsdu", "off", 0 },		/* Default IPTV AMSDU setting */
-#ifdef RTCONFIG_BCMARM
+#ifdef RTCONFIG_BCMARM && !defined (RTCONFIG_BCM_7114)
 	{ "wl_rx_amsdu_in_ampdu", "off", 0 },	/* Media RX AMSDU In AMPDU setting */
 #endif
 	{ "wl_cal_period", "0", 0 },		/* Disable periodic cal */
 #ifdef RTCONFIG_BCMARM
 	{ "wl_psta_inact", "0", 0 },		/* PSTA inactivity timer */
+	{ "wl_srl", "11", 0},			/* Short Retry Limit */
+	{ "wl_lrl", "11", 0},			/* Long Retry Limit */
 #endif
 	{ 0, 0, 0 }
 };

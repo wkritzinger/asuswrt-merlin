@@ -1,6 +1,18 @@
 ﻿
 var validator = {
 
+	ipv4cidr: function(obj){
+		var rangere_cidr=new RegExp("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$", "gi");
+		if(rangere_cidr.test(obj.value) || validator.ipAddr4(obj)) {
+			return true;
+		}else{
+			alert(obj.value+" is not valid.  Please enter a valid IP, which can optionally be in CIDR format (1.2.3.4/24).");
+			obj.focus();
+			obj.select();
+			return false;
+		}
+	},
+
 	account: function(string_obj, flag){
 		var invalid_char = "";
 
@@ -267,6 +279,19 @@ var validator = {
 			return false;
 		else
 			return true;
+	},
+
+	haveFullWidthChar: function(obj) {
+		var re = /[^\x00-\xff]/g;
+		if (obj.value.match(re)) {
+			alert('<#JS_validchar#>');
+			obj.focus();
+			obj.select();
+			return false;
+		}
+		else {
+			return true;
+		}
 	},
 
 	hostName: function (obj){

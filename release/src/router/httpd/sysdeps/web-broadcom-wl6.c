@@ -1277,7 +1277,7 @@ ej_wl_status(int eid, webs_t wp, int argc, char_t **argv, int unit)
 #ifdef RTCONFIG_QTN
 	if (unit && rpc_qtn_ready())
 	{
-		ret = qcsapi_wifi_rfstatus(WIFINAME, (qcsapi_unsigned_int *) &val);
+		ret = qcsapi_wifi_rfstatus((qcsapi_unsigned_int *) &val);
 		if (ret < 0)
 			dbG("qcsapi_wifi_rfstatus error, return: %d\n", ret);
 		else
@@ -4061,7 +4061,8 @@ ej_wl_auth_psta(int eid, webs_t wp, int argc, char_t **argv)
 
 	snprintf(prefix, sizeof(prefix), "wl%d_", unit);
 
-	if (!nvram_match(strcat_r(prefix, "mode", tmp), "psta"))
+	if (!nvram_match(strcat_r(prefix, "mode", tmp), "psta") &&
+	    !nvram_match(strcat_r(prefix, "mode", tmp), "psr"))
 		goto PSTA_ERR;
 
 	name = nvram_safe_get(strcat_r(prefix, "ifname", tmp));
@@ -4173,7 +4174,7 @@ dump_bss_info_array(int eid, webs_t wp, int argc, char_t **argv, wl_bss_info_t *
 	wl_format_ssid(ssidbuftmp, bi->SSID, bi->SSID_len);
 
 	if (str_escape_quotes(ssidbuf, ssidbuftmp, sizeof(ssidbuf)) == 0 )
-		strncpy(ssidbuf, ssidbuftmp, sizeof(ssidbuf));
+		strlcpy(ssidbuf, ssidbuftmp, sizeof(ssidbuf));
 
 	retval += websWrite(wp, "\"%s\",", ssidbuf);
 	retval += websWrite(wp, "\"%d\",", (int16)(dtoh16(bi->RSSI)));
@@ -4235,7 +4236,7 @@ wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit)
 		wl_format_ssid(ssidbuftmp, ssid.SSID, dtoh32(ssid.SSID_len));
 
 		if (str_escape_quotes(ssidbuf, ssidbuftmp, sizeof(ssidbuf)) == 0 )
-			strncpy(ssidbuf, ssidbuftmp, sizeof(ssidbuf));
+			strlcpy(ssidbuf, ssidbuftmp, sizeof(ssidbuf));
 
 		retval += websWrite(wp, "%s\",\"\",\"\",\"\",\"\",\"\",", ssidbuf);
 	}
@@ -4282,7 +4283,7 @@ ej_wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit)
 #ifdef RTCONFIG_QTN
 	if (unit && rpc_qtn_ready())
 	{
-		ret = qcsapi_wifi_rfstatus(WIFINAME, (qcsapi_unsigned_int *) &val);
+		ret = qcsapi_wifi_rfstatus((qcsapi_unsigned_int *) &val);
 		if (ret < 0) {
 			ret += websWrite(wp, "dataarray5 = [];wificlients5 = [];");
 			dbG("qcsapi_wifi_rfstatus error, return: %d\n", ret);
@@ -4470,7 +4471,7 @@ ej_wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit)
 				}
 			}
 			if ((found) && (str_escape_quotes(hostnameentry, tmp, sizeof(hostnameentry)) == 0 ))
-				strncpy(hostnameentry, tmp, sizeof(hostnameentry));
+				strlcpy(hostnameentry, tmp, sizeof(hostnameentry));
 
 			if (found == 0) {
 				// Not in arplist nor in leaselist
@@ -4590,7 +4591,7 @@ ej_wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit)
 					}
 
 					if ((found) && (str_escape_quotes(hostnameentry, tmp,sizeof(hostnameentry)) == 0 ))
-						strncpy(hostnameentry, tmp, sizeof(hostnameentry));
+						strlcpy(hostnameentry, tmp, sizeof(hostnameentry));
 
 					if (found == 0) {
 						// Not in arplist nor in leaselist

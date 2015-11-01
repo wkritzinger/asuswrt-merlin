@@ -313,7 +313,7 @@ check_nmp_db(CLIENT_DETAIL_INFO_TABLE *p_client_tab, int client_no)
 {
         char new_mac[13];
         char *search_list, *nv, *nvp, *b;
-	char *db_mac, *db_user_def, *db_device_name, *db_type, *db_http, *db_printer, *db_itune, *db_apl_dev;
+	char *db_mac, *db_user_def, *db_device_name, *db_type, *db_http, *db_printer, *db_itune, *db_apple_model;
 #ifdef RTCONFIG_BWDPI
 	char *db_bwdpi_host, *db_bwdpi_vendor, *db_bwdpi_type, *db_bwdpi_device;
 #endif
@@ -330,30 +330,30 @@ check_nmp_db(CLIENT_DETAIL_INFO_TABLE *p_client_tab, int client_no)
 
 	while (nv && (b = strsep(&nvp, "<")) != NULL) {
 #ifdef RTCONFIG_BWDPI
-                if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apl_dev, &db_type, &db_http, &db_printer, &db_itune, &db_bwdpi_host, &db_bwdpi_vendor, &db_bwdpi_type, &db_bwdpi_device) != 12) continue;
+                if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apple_model, &db_type, &db_http, &db_printer, &db_itune, &db_bwdpi_host, &db_bwdpi_vendor, &db_bwdpi_type, &db_bwdpi_device) != 12) continue;
 #else
-                if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apl_dev, &db_type, &db_http, &db_printer, &db_itune) != 8) continue; 
+                if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apple_model, &db_type, &db_http, &db_printer, &db_itune) != 8) continue; 
 #endif 
 
-		//NMP_DEBUG_M("DB:-%s,%s,%s,%s,%s,%s,%s,%s-\n", db_mac, db_user_def, db_device_name, db_apl_dev, db_type, db_http, db_printer, db_itune);
+		//NMP_DEBUG_M("DB:-%s,%s,%s,%s,%s,%s,%s,%s-\n", db_mac, db_user_def, db_device_name, db_apple_model, db_type, db_http, db_printer, db_itune);
 #ifdef RTCONFIG_BWDPI
 		//NMP_DEBUG_M("BWDPI:-%s,%s-\n", db_bwdpi_hostname, db_bwdpi_devicetype);
 #endif
 
         	if (!strcmp(db_mac, new_mac)) {
 			NMP_DEBUG("*** %s at DB!!! Update to memory\n",new_mac);
-			strcpy((char *)p_client_tab->user_define[client_no], db_user_def);
-		        strcpy((char *)p_client_tab->device_name[client_no], db_device_name);
-			strcpy((char *)p_client_tab->apl_dev[client_no], db_apl_dev);
+			strlcpy((char *)p_client_tab->user_define[client_no], db_user_def, sizeof (p_client_tab->user_define[client_no]));
+		        strlcpy((char *)p_client_tab->device_name[client_no], db_device_name, sizeof (p_client_tab->device_name[client_no]));
+			strlcpy((char *)p_client_tab->apple_model[client_no], db_apple_model, sizeof (p_client_tab->apple_model[client_no]));
 		        p_client_tab->type[client_no] = atoi(db_type);
 			p_client_tab->http[client_no] = atoi(db_http);
 			p_client_tab->printer[client_no] = atoi(db_printer);
 			p_client_tab->itune[client_no] = atoi(db_itune);
 #ifdef RTCONFIG_BWDPI
-                        strcpy(p_client_tab->bwdpi_host[client_no], db_bwdpi_host);
-			strcpy(p_client_tab->bwdpi_vendor[client_no], db_bwdpi_vendor);
-			strcpy(p_client_tab->bwdpi_type[client_no], db_bwdpi_type);
-                        strcpy(p_client_tab->bwdpi_device[client_no], db_bwdpi_device);
+			strlcpy(p_client_tab->bwdpi_host[client_no], db_bwdpi_host, sizeof (p_client_tab->bwdpi_host[client_no]));
+			strlcpy(p_client_tab->bwdpi_vendor[client_no], db_bwdpi_vendor, sizeof (p_client_tab->bwdpi_vendor[client_no]));
+			strlcpy(p_client_tab->bwdpi_type[client_no], db_bwdpi_type, sizeof (p_client_tab->bwdpi_type[client_no]));
+			strlcpy(p_client_tab->bwdpi_device[client_no], db_bwdpi_device, sizeof (p_client_tab->bwdpi_device[client_no]));
 #endif
 			break;
 		}
@@ -367,7 +367,7 @@ write_to_nvram(CLIENT_DETAIL_INFO_TABLE *p_client_tab)
 {
 	char new_mac[13], *dst_list;
 	char *nv, *nvp, *b, *search_list;
-	char *db_mac, *db_user_def, *db_device_name, *db_type, *db_http, *db_printer, *db_itune, *db_apl_dev;
+	char *db_mac, *db_user_def, *db_device_name, *db_type, *db_http, *db_printer, *db_itune, *db_apple_model;
 #ifdef RTCONFIG_BWDPI
         char *db_bwdpi_host, *db_bwdpi_vendor, *db_bwdpi_type, *db_bwdpi_device;
 #endif
@@ -395,17 +395,17 @@ NMP_DEBUG_M("client data in DB: %s\n", new_mac);
 		while (nv && (b = strsep(&nvp, "<")) != NULL) {
 			if (b == NULL) continue;
 #ifdef RTCONFIG_BWDPI
-                	if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apl_dev, &db_type, &db_http, &db_printer, &db_itune, &db_bwdpi_host, &db_bwdpi_vendor, &db_bwdpi_type, &db_bwdpi_device) != 12) continue;
+                	if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apple_model, &db_type, &db_http, &db_printer, &db_itune, &db_bwdpi_host, &db_bwdpi_vendor, &db_bwdpi_type, &db_bwdpi_device) != 12) continue;
 #else
-			if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apl_dev, &db_type, &db_http, &db_printer, &db_itune) != 8) continue;
+			if (vstrsep(b, ">", &db_mac, &db_user_def, &db_device_name, &db_apple_model, &db_type, &db_http, &db_printer, &db_itune) != 8) continue;
 #endif
 
-NMP_DEBUG_M("-%s,%s,%s,%s,%d,%d,%d,%d-\n", db_mac, db_user_def, db_device_name, db_apl_dev, atoi(db_type), atoi(db_http), atoi(db_printer), atoi(db_itune));
+NMP_DEBUG_M("-%s,%s,%s,%s,%d,%d,%d,%d-\n", db_mac, db_user_def, db_device_name, db_apple_model, atoi(db_type), atoi(db_http), atoi(db_printer), atoi(db_itune));
 #ifdef RTCONFIG_BWDPI
                 NMP_DEBUG_M("BWDPI: %s,%s,%s,%s\n", db_bwdpi_host, db_bwdpi_vendor, db_bwdpi_type, db_bwdpi_device);
 #endif
 			if (!strcmp((char *)p_client_tab->device_name[p_client_tab->detail_info_num], db_device_name) &&
-			    !strcmp((char *)p_client_tab->apl_dev[p_client_tab->detail_info_num], db_apl_dev) &&
+			    !strcmp((char *)p_client_tab->apple_model[p_client_tab->detail_info_num], db_apple_model) &&
 			    p_client_tab->type[p_client_tab->detail_info_num] == atoi(db_type) &&
 			    p_client_tab->http[p_client_tab->detail_info_num] == atoi(db_http) &&
 			    p_client_tab->printer[p_client_tab->detail_info_num] == atoi(db_printer) &&
@@ -431,13 +431,13 @@ NMP_DEBUG("DATA the same!\n");
 			else
 				sprintf(dst_list, "%s>%s", dst_list, db_device_name);
 
-                        if (strcmp((char *)p_client_tab->apl_dev[p_client_tab->detail_info_num], "")) {
+                        if (strcmp((char *)p_client_tab->apple_model[p_client_tab->detail_info_num], "")) {
 				client_updated = 1;
-                                NMP_DEBUG("Update Apple device: %s.\n", p_client_tab->apl_dev[p_client_tab->detail_info_num]);
-                                sprintf(dst_list, "%s>%s", dst_list, p_client_tab->apl_dev[p_client_tab->detail_info_num]);
+                                NMP_DEBUG("Update Apple device: %s.\n", p_client_tab->apple_model[p_client_tab->detail_info_num]);
+                                sprintf(dst_list, "%s>%s", dst_list, p_client_tab->apple_model[p_client_tab->detail_info_num]);
                         }
                         else
-                                sprintf(dst_list, "%s>%s", dst_list, db_apl_dev);
+                                sprintf(dst_list, "%s>%s", dst_list, db_apple_model);
 
                         if (p_client_tab->type[p_client_tab->detail_info_num] != 0) {
 				client_updated = 1;
@@ -525,7 +525,7 @@ NMP_DEBUG_M("new client: %d-%s,%s,%d\n",p_client_tab->detail_info_num,
 		sprintf(nmp_client_list,"%s<%s>>%s>%s>%d>%d>%d>%d>", nmp_client_list, 
 		new_mac,
 	        p_client_tab->device_name[p_client_tab->detail_info_num],
-		p_client_tab->apl_dev[p_client_tab->detail_info_num],
+		p_client_tab->apple_model[p_client_tab->detail_info_num],
        	 	p_client_tab->type[p_client_tab->detail_info_num],
 		p_client_tab->http[p_client_tab->detail_info_num],
 		p_client_tab->printer[p_client_tab->detail_info_num],
@@ -629,8 +629,10 @@ static int QuerymUPnPCInfo(P_CLIENT_DETAIL_INFO_TABLE p_client_detail_info_tab, 
 				
 				if(p_client_detail_info_tab->device_name[x] == NULL) {
 				    if((strcmp(upnpc_friendlyname, "") && !strstr(upnpc_friendlyname, "UPnP Access Point")))
+				    {
 					NMP_DEBUG("MiniUPnP get name: %s\n", upnpc_friendlyname);
-					strcpy(p_client_detail_info_tab->device_name[x], upnpc_friendlyname);
+					strlcpy(p_client_detail_info_tab->device_name[x], upnpc_friendlyname, sizeof (p_client_detail_info_tab->device_name[x]));
+				   }
 				}
 			}
 		}
@@ -660,9 +662,9 @@ p_client_detail_info_tab->ip_addr[x][3]
 			NMP_DEBUG("Query mDNS get: %d, %d.%d.%d.%d/%s/%s_\n", i,
                         a[0],a[1],a[2],a[3], shmClientList->Name[i], shmClientList->Model[i]);
 			if(shmClientList->Name[i]!=NULL && strcmp(shmClientList->Name[i],p_client_detail_info_tab->device_name[x]))
-				strcpy(p_client_detail_info_tab->device_name[x], shmClientList->Name[i]);
-                        if(shmClientList->Model[i]!=NULL && strcmp(shmClientList->Name[i],p_client_detail_info_tab->apl_dev[x]))
-                                AppleModelCheck(p_client_detail_info_tab->apl_dev[x],
+				strlcpy(p_client_detail_info_tab->device_name[x], shmClientList->Name[i], sizeof (p_client_detail_info_tab->device_name[x]));
+                        if(shmClientList->Model[i]!=NULL && strcmp(shmClientList->Name[i],p_client_detail_info_tab->apple_model[x]))
+                                AppleModelCheck(p_client_detail_info_tab->apple_model[x],
 						p_client_detail_info_tab->device_name[x],
 						&p_client_detail_info_tab->type[x],
 						shmClientList->Model[i]);
@@ -898,7 +900,7 @@ int main(int argc, char *argv[])
                                 p_client_detail_info_tab->mac_addr[ii][0],p_client_detail_info_tab->mac_addr[ii][1],
                                 p_client_detail_info_tab->mac_addr[ii][2],p_client_detail_info_tab->mac_addr[ii][3],
                                 p_client_detail_info_tab->mac_addr[ii][4],p_client_detail_info_tab->mac_addr[ii][5],
-				p_client_detail_info_tab->device_name[ii],p_client_detail_info_tab->apl_dev[ii],
+				p_client_detail_info_tab->device_name[ii],p_client_detail_info_tab->apple_model[ii],
 				p_client_detail_info_tab->type[ii],p_client_detail_info_tab->http[ii],
 				p_client_detail_info_tab->itune[ii], p_client_detail_info_tab->printer[ii],
                 		p_client_detail_info_tab->bwdpi_host[ii],
@@ -913,7 +915,7 @@ int main(int argc, char *argv[])
                                 p_client_detail_info_tab->mac_addr[ii][0],p_client_detail_info_tab->mac_addr[ii][1],
                                 p_client_detail_info_tab->mac_addr[ii][2],p_client_detail_info_tab->mac_addr[ii][3],
                                 p_client_detail_info_tab->mac_addr[ii][4],p_client_detail_info_tab->mac_addr[ii][5],
-				p_client_detail_info_tab->device_name[ii],p_client_detail_info_tab->apl_dev[ii],
+				p_client_detail_info_tab->device_name[ii],p_client_detail_info_tab->apple_model[ii],
 				p_client_detail_info_tab->type[ii],p_client_detail_info_tab->http[ii],
 				p_client_detail_info_tab->itune[ii], p_client_detail_info_tab->printer[ii]
 				);
@@ -1078,7 +1080,6 @@ int main(int argc, char *argv[])
 	    if(p_client_detail_info_tab->detail_info_num < p_client_detail_info_tab->ip_mac_num) {
 		nvram_set("networkmap_status", "1");
 		FindAllApp(my_ipaddr, p_client_detail_info_tab);
-		FindHostname(p_client_detail_info_tab);
 		StringChk(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
 		#ifdef RTCONFIG_BWDPI
 		query_ret = QueryBwdpiInfo(p_client_detail_info_tab, i);

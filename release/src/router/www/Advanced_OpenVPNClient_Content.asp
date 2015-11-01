@@ -20,7 +20,7 @@
 <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
 <script type="text/javascript" language="JavaScript" src="/merlin.js"></script>
 
-<script type="text/javascript" src="/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="/switcherplugin/jquery.iphone-switch.js"></script>
 <style type="text/css">
 .contentM_qis{
@@ -134,12 +134,27 @@ wan_proto = '<% nvram_get("wan_proto"); %>';
 
 openvpn_unit = '<% nvram_get("vpn_client_unit"); %>';
 
-if (openvpn_unit == 1)
-	service_state = (<% sysinfo("pid.vpnclient1"); %> > 0);
-else if (openvpn_unit == 2)
-	service_state = (<% sysinfo("pid.vpnclient2"); %> > 0);
-else
-	service_state = false;
+switch (openvpn_unit) {
+	case "1":
+		client_state = (<% sysinfo("pid.vpnclient1"); %> > 0);
+		break;
+	case "2":
+		client_state = (<% sysinfo("pid.vpnclient2"); %> > 0);
+		break;
+	case "3":
+		client_state = (<% sysinfo("pid.vpnclient3"); %> > 0);
+		break;
+	case "4":
+		client_state = (<% sysinfo("pid.vpnclient4"); %> > 0);
+		break;
+	case "5":
+		client_state = (<% sysinfo("pid.vpnclient5"); %> > 0);
+		break;
+	default:
+		client_state = false;
+		break;
+}
+
 
 enforce_ori = "<% nvram_get("vpn_client_enforce"); %>";
 policy_ori = "<% nvram_get("vpn_client_rgw"); %>";
@@ -216,6 +231,8 @@ function initial()
 
 	getTLS(openvpn_unit);
 	update_visibility();
+
+	setTimeout("getConnStatus()", 2000);
 }
 
 function getTLS(unit){
@@ -240,6 +257,7 @@ function setTLSTable(unit) {
 			document.getElementById('edit_vpn_crt_client_key').value = vpn_crt_client1_key[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_static').value = vpn_crt_client1_static[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_crl').value = vpn_crt_client1_crl[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
+			document.getElementById('edit_vpn_crt_client_extra').value = vpn_crt_client1_extra[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			break;
 		case "2" :
 			document.getElementById('edit_vpn_crt_client_ca').value = vpn_crt_client2_ca[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
@@ -247,8 +265,8 @@ function setTLSTable(unit) {
 			document.getElementById('edit_vpn_crt_client_key').value = vpn_crt_client2_key[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_static').value = vpn_crt_client2_static[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_crl').value = vpn_crt_client2_crl[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
+			document.getElementById('edit_vpn_crt_client_extra').value = vpn_crt_client2_extra[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			break;
-/*
 		case "3" :
 			document.getElementById('edit_vpn_crt_client_ca').value = vpn_crt_client3_ca[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_crt').value = vpn_crt_client3_crt[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
@@ -270,7 +288,6 @@ function setTLSTable(unit) {
 			document.getElementById('edit_vpn_crt_client_static').value = vpn_crt_client5_static[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			document.getElementById('edit_vpn_crt_client_crl').value = vpn_crt_client5_crl[0].replace(/&#10/g, "\n").replace(/&#13/g, "\r");
 			break;
-*/
 	}
 }
 
@@ -340,11 +357,13 @@ function save_Keys(){
 			document.form.vpn_crt_client1_key.value = document.getElementById('edit_vpn_crt_client_key').value;
 			document.form.vpn_crt_client1_static.value = document.getElementById('edit_vpn_crt_client_static').value;
 			document.form.vpn_crt_client1_crl.value = document.getElementById('edit_vpn_crt_client_crl').value;
+			document.form.vpn_crt_client1_extra.value = document.getElementById('edit_vpn_crt_client_extra').value;
 			document.form.vpn_crt_client1_ca.disabled = false;
 			document.form.vpn_crt_client1_crt.disabled = false;
 			document.form.vpn_crt_client1_key.disabled = false;
 			document.form.vpn_crt_client1_static.disabled = false;
 			document.form.vpn_crt_client1_crl.disabled = false;
+			document.form.vpn_crt_client1_extra.disabled = false;
 			break;
 		case "2" :
 			document.form.vpn_crt_client2_ca.value = document.getElementById('edit_vpn_crt_client_ca').value;
@@ -352,13 +371,14 @@ function save_Keys(){
 			document.form.vpn_crt_client2_key.value = document.getElementById('edit_vpn_crt_client_key').value;
 			document.form.vpn_crt_client2_static.value = document.getElementById('edit_vpn_crt_client_static').value;
 			document.form.vpn_crt_client2_crl.value = document.getElementById('edit_vpn_crt_client_crl').value;
+			document.form.vpn_crt_client2_extra.value = document.getElementById('edit_vpn_crt_client_extra').value;
 			document.form.vpn_crt_client2_ca.disabled = false;
 			document.form.vpn_crt_client2_crt.disabled = false;
 			document.form.vpn_crt_client2_key.disabled = false;
 			document.form.vpn_crt_client2_static.disabled = false;
 			document.form.vpn_crt_client2_crl.disabled = false;
+			document.form.vpn_crt_client2_extra.disabled =  false;
 			break;
-/*
 		case "3" :
 			document.form.vpn_crt_client3_ca.value = document.getElementById('edit_vpn_crt_client_ca').value;
 			document.form.vpn_crt_client3_crt.value = document.getElementById('edit_vpn_crt_client_crt').value;
@@ -395,7 +415,6 @@ function save_Keys(){
 			document.form.vpn_crt_client5_static.disabled = false;
 			document.form.vpn_crt_client5_crl.disabled = false;
 			break;
-*/
 	}
 	
 	this.FromObject ="0";
@@ -430,13 +449,13 @@ function cal_panel_block(){
 function applyRule(){
 	showLoading();
 
-	if (service_state) {
+	if (client_state) {
 		document.form.action_script.value = "restart_vpnclient"+openvpn_unit;
 	}
 
 	tmp_value = "";
 
-	for (var i=1; i < 3; i++) {
+	for (var i=1; i < 6; i++) {
 		if (i == openvpn_unit) {
 			if (getRadioValue(document.form.vpn_client_x_eas) == 1)
 				tmp_value += ""+i+",";
@@ -467,7 +486,7 @@ function applyRule(){
 
 	if (((enforce_ori != getRadioValue(document.form.vpn_client_enforce)) ||
 	     (policy_ori != document.form.vpn_client_rgw.value)) &&
-	    (!service_state))
+	    (!client_state))
 		document.form.action_script.value += "start_vpnrouting"+openvpn_unit;
 
 	document.form.submit();
@@ -588,13 +607,13 @@ function addRow_Group(upper){
 	if(document.form.clientlist_dstipAddr.value=="")
 		document.form.clientlist_dstipAddr.value="0.0.0.0";
 
-	if (!validate_ipcidr(document.form.clientlist_ipAddr)) {
+	if (!validator.ipv4cidr(document.form.clientlist_ipAddr)) {
 		document.form.clientlist_ipAddr.focus();
 		document.form.clientlist_ipAddr.select();
 		return false;
 	}
 
-	if (!validate_ipcidr(document.form.clientlist_dstipAddr)) {
+	if (!validator.ipv4cidr(document.form.clientlist_dstipAddr)) {
 		document.form.clientlist_dstipAddr.focus();
 		document.form.clientlist_dstipAddr.select();
 		return false;
@@ -696,18 +715,54 @@ function pullLANIPList(obj){
 		hideClients_Block();
 }
 
-function validate_ipcidr(obj){
-	var rangere_cidr=new RegExp("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$", "gi");
 
-	if(rangere_cidr.test(obj.value) || validator.ipAddr4(obj)) {;
-		return true;
-	}else{
-		alert(obj.value+" <#JS_validip#>");
-		obj.focus();
-		obj.select();
-		return false;
+function getConnStatus() {
+	switch (openvpn_unit) {
+		case "1":
+			client_state = vpnc_state_t1;
+			client_errno = vpnc_errno_t1;
+			break;
+		case "2":
+			client_state = vpnc_state_t2;
+			client_errno = vpnc_errno_t2;
+			break;
+		case "3":
+			client_state = vpnc_state_t3;
+			client_errno = vpnc_errno_t3;
+			break;
+		case "4":
+			client_state = vpnc_state_t4;
+			client_errno = vpnc_errno_t4;
+			break;
+		case "5":
+			client_state = vpnc_state_t5;
+			client_errno = vpnc_errno_t5;
+			break;
 	}
 
+	if (client_state == "-1") {
+		switch (client_errno) {
+			case "1":
+				code = "Error - IP conflict!";
+				break;
+			case "2":
+				code = "Error - Routing conflict!";
+				break;
+			case "4":
+				code = "Error - SSL/TLS issue!";
+				break;
+			case "5":
+				code = "Error - DH issue!";
+				break;
+			case "6":
+				code = "Error - Authentication failure!";
+				break;
+			default:
+				code = "Error - check configuration!";
+				break;
+		}
+		document.getElementById("vpn_error_msg").innerHTML = "<span>" + code + "</span>";
+	}
 }
 
 </script>
@@ -765,6 +820,12 @@ function validate_ipcidr(obj){
 												<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_client_crl" name="edit_vpn_crt_client_crl" cols="65" maxlength="3499"></textarea>
 											</td>
 										</tr>
+										<tr>
+											<th id="manualKey">Extra Chain Certificates (Optional)</th>
+											<td>
+												<textarea rows="8" class="textarea_ssh_table"id="edit_vpn_crt_client_extra" name="edit_vpn_crt_client_extra" cols="65" maxlength="3499"></textarea>
+											</td>
+										</tr>
 									</table>
 								</td>
 							</tr>						
@@ -804,11 +865,13 @@ function validate_ipcidr(obj){
 <input type="hidden" name="vpn_crt_client1_key" value="" disabled>
 <input type="hidden" name="vpn_crt_client1_static" value="" disabled>
 <input type="hidden" name="vpn_crt_client1_crl" value="" disabled>
+<input type="hidden" name="vpn_crt_client1_extra" value="" disabled>
 <input type="hidden" name="vpn_crt_client2_ca" value="" disabled>
 <input type="hidden" name="vpn_crt_client2_crt" value="" disabled>
 <input type="hidden" name="vpn_crt_client2_key" value="" disabled>
 <input type="hidden" name="vpn_crt_client2_static" value="" disabled>
 <input type="hidden" name="vpn_crt_client2_crl" value="" disabled>
+<input type="hidden" name="vpn_crt_client2_extra" value="" disabled>
 <input type="hidden" name="vpn_crt_client3_ca" value="" disabled>
 <input type="hidden" name="vpn_crt_client3_crt" value="" disabled>
 <input type="hidden" name="vpn_crt_client3_key" value="" disabled>
@@ -866,9 +929,12 @@ function validate_ipcidr(obj){
 					<tr id="client_unit">
 						<th>Select client instance</th>
 						<td>
-			        		<select name="vpn_client_unit" class="input_option" onChange="change_vpn_unit(this.value);">
+							<select name="vpn_client_unit" class="input_option" onChange="change_vpn_unit(this.value);">
 								<option value="1" <% nvram_match("vpn_client_unit","1","selected"); %> >Client 1</option>
 								<option value="2" <% nvram_match("vpn_client_unit","2","selected"); %> >Client 2</option>
+								<option value="3" <% nvram_match("vpn_client_unit","3","selected"); %> >Client 3</option>
+								<option value="4" <% nvram_match("vpn_client_unit","4","selected"); %> >Client 4</option>
+								<option value="5" <% nvram_match("vpn_client_unit","5","selected"); %> >Client 5</option>
 							</select>
 			   			</td>
 					</tr>
@@ -878,7 +944,7 @@ function validate_ipcidr(obj){
 							<div class="left" style="width:94px; float:left; cursor:pointer;" id="radio_service_enable"></div>
 							<script type="text/javascript">
 
-								$('#radio_service_enable').iphoneSwitch(service_state,
+								$('#radio_service_enable').iphoneSwitch((client_state!=0),
 									 function() {
 										document.form.action_script.value = "start_vpnclient" + openvpn_unit;
 										parent.showLoading();
@@ -897,6 +963,7 @@ function validate_ipcidr(obj){
 								);
 							</script>
 							<span>Warning: any unsaved change will be lost.</span>
+							<div id="vpn_error_msg"></div>
 					    </td>
 					</tr>
 					<tr>
@@ -1145,7 +1212,7 @@ function validate_ipcidr(obj){
 				<table id="selectiveTable" width="100%" border="1" align="center" cellpadding="4" cellspacing="0" class="FormTable_table" style="margin-top:8px;">
 					<thead>
 						<tr>
-							<td colspan="5">Rules for routing client traffic through the tunnel (<#List_limit#>&nbsp;128)</td>
+							<td colspan="5">Rules for routing client traffic through the tunnel (<#List_limit#>&nbsp;100)</td>
 						</tr>
 					</thead>
 					<tr>
@@ -1175,7 +1242,7 @@ function validate_ipcidr(obj){
 						</td>
 						<td width="12%">
 							<div>
-								<input type="button" class="add_btn" onClick="addRow_Group(128);" value="">
+								<input type="button" class="add_btn" onClick="addRow_Group(100);" value="">
 							</div>
 						</td>
 					</tr>

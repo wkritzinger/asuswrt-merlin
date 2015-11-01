@@ -1,21 +1,118 @@
 Asuswrt-Merlin Changelog
 ========================
 
-378.56 (xx-xxxx-2015)
-   - NEW: Merged with GPL 7838.
+378.56_2 (xx-xxx-2015)
+    - CHANGED: Reverted the memory buffering optimization
+               for ARM devices, as people keep panicking
+               over the lower amount of free RAM.  You can 
+               manually re-enable the optimization by setting
+               "drop_caches=0" in nvram.
+    - CHANGED: Allow using a port < 1024 for http(s) webui
+               interface.
+    - FIXED: EMF wasn't working on AC56/AC68/AC87.
+    - FIXED: Couldn't connect to ISPs using VLANs (RT-AC87U)
+    - FIXED: Editing Port Forward entry with ellipsis in
+             the description or the port range would
+             still edit the shortened version instead 
+             of the full content.
+    - FIXED: Debug log from mDNSNetMonitor could gradually
+             fill up RAM - disabled it.
+    - FIXED: Router crash if pasting SSH key > 2047
+             characters.
+    - FIXED: Editing an entry on the networkmap would
+             clear the hostname if entry existed in
+             the DHCP static list.
+    - FIXED: OpenVPN server in secret key mode 
+             would fail to start.
+    - FIXED: Couldn't add entries to the MAC Filter list
+             of Guest Networks (reverted our previous
+             implementation which conflicted with
+             Asus's new one).
+    - FIXED: NTP failing to refresh for some cases.
+             Implemented temporary workaround.
+    - FIXED: Some services not properly starting at
+             boot time (like Parental Control or Tor)
+
+
+378.56 (25-Oct-2015)
+     NOTE: There is no 378.56 build for the RT-N66U at
+           this time, as Asus hasn't released updated 
+           source code for this model yet, and there are
+           new closed source binary components that are
+           necessary for this new release.
+
+           Make sure to read the changelog of the two
+           previous betas for the complete list of
+           changes since 378.55.
+
+   - CHANGED: Nameserver handling is more resilient to
+              scenarios where dnsmasq fails to start due
+              to a broken configuration
+   - FIXED: PPTP/L2TP client page broken on French locale
+   - FIXED: Entries on the Virtual Server page with ellipsis 
+            in their name or port range weren't properly 
+            copied to the Add fields when edited.
+   - FIXED: Additional fixes to truncated hostnames related
+            to networkmap
+
+
+378.56 Beta 2 (18-Oct-2015)
+   - CHANGED: Increased Guest MAC filter entries limit to 64.
+   - CHANGED: DHCP query logging no longer override configured
+              syslog level, and option was renamed to "Hide queries"
+              to be more intuitive in regard to the level logging
+              configured.
+   - CHANGED: Enabling Hide DHCP queries also silences any RA 
+              routine event.
+   - CHANGED: Reverted networkmap's printer detection change
+              as it didn't resolve the printer wakeups.
+   - CHANGED: Reorganized settings on the System page
+   - FIXED: QoS page layout in Firefox
+   - FIXED: curl wasn't using the firmware's CA list (regression)
+   - FIXED: Models with 128 KB support were only reporting 64 KB
+            in the nvram userspace tool
+   - FIXED: Traditional QoS not working when IPv6 is enabled
+            (patch by charlie2alpha)
+   - FIXED: Smart Connect page fails to save interface policies
+   - FIXED: VPNStatus page was broken on French locale
+
+
+378.56 Beta 1 (12-Oct-2015)
+   - NEW: Merged with GPL 9177.
+   - NEW: Added support for the RT-AC88U.
    - NEW: Support for Russian ISP Telenet (code by theMIROn)
    - NEW: ipset support in dnsmasq (patch by ryzhov_al)
    - NEW: default loglevel is now configurable and defaults to 
           5 (notice) instead of 0 (emergency)
    - NEW: local syslogd loglevel is now configurable through the webui.
+   - NEW: Support for extra-certs in OpenVPN
+   - NEW: Editable DHCP static leases list, virtual servers, port triggers.
+   - NEW: IP addresses on the Network Service Filter page can now be 
+          subnets in CIDR format (i.e. 10.0.0.0/24)
    - CHANGED: Updated miniupnpd to 20150723 snapshot
    - CHANGED: Updated openvpn to 2.3.8
-   - CHANGED: Updated dropbear to 2015.68
+   - CHANGED: Updated dropbear to 2015.68 + upstream patches
+   - CHANGED: Updated minidlna to 1.1.5.
+   - CHANGED: Support up to 5 different OpenVPN clients (to match Asus)
+   - CHANGED: Maximum openvpn policy rules reduced from 128 to 100, fewer
+              priority slots wasted in the RPDB tables (could have been a
+              problem with the increase in the number of supported clients)
+   - CHANGED: Improvements to VPN Status page
+   - CHANGED: Connection failure reason shown on the OpenVPN client
+              configuration page.
    - FIXED: Router crash when an invalid or corrupted DH parameter
             is used on an OpenVPN server configuration.
    - FIXED: 2.4 GHz temperature would be missing on the Sysinfo
-            page when disabling thee 5 GHz radio on the RT-AC3200.
+            page when disabling the 5 GHz radio on the RT-AC3200.
    - FIXED: Max tracked connection limit wasn't user-editable
+   - FIXED: Resource leaks in ez-ipupdate if an update failed
+   - FIXED: Networked printers coming out of sleep every time 
+            networkmap queried their LPR service
+   - FIXED: Resource leak in networkmap when scanning for
+            printer servers
+   - REMOVED: Regulation mode setting on Wireless -> Professional.
+              This can't be adjusted anymore, as it was moved to
+              a closed source component.
 
 
 378.55 (17-July-2015)

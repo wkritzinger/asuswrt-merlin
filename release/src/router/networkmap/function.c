@@ -275,6 +275,7 @@ int lpd515(unsigned char *dest_ip)
     	if (connect(sockfd1, (struct sockaddr*)&other_addr1, sizeof(other_addr1)) == -1)
     	{
         	NMP_DEBUG_F("LPD515: socket connect failed!\n");
+		close(sockfd1);
 		return -1;
      	}
 
@@ -286,6 +287,7 @@ int lpd515(unsigned char *dest_ip)
         if ((sendlen1 = send(sockfd1, sendbuf1, strlen(sendbuf1), 0)) == -1)
         {
              	NMP_DEBUG_F("LPD515: Send packet failed!\n");
+		close(sockfd1);
 	    	return -1;
         }
         gettimeofday(&tv1, NULL);
@@ -1614,6 +1616,7 @@ Asus_Device_Discovery(unsigned char *src_ip, unsigned char *dest_ip, P_CLIENT_DE
 			if(UnpackGetInfo(txPdubuf, &get_info)) {
 				NMP_DEBUG_F("DD: productID= %s~\n", get_info.ProductID);
 				memcpy(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num], get_info.ProductID, 16);
+				fixstr(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
 				p_client_detail_info_tab->type[p_client_detail_info_tab->detail_info_num] = 3;
 				break;
 			}
@@ -1659,7 +1662,7 @@ get_name_from_dhcp_lease(unsigned char *mac, char *dev_name)
 
 		if(!strcmp(dev_mac, hwaddr)) {
 			NMP_DEBUG_F("Find the same MAC(%s)! copy device name\n", dev_mac);
-			strncpy(dev_name, name, 15);
+			strlcpy(dev_name, name, 16);
 			break;
 		}
 	}
@@ -1864,52 +1867,6 @@ int FindAllApp(unsigned char *src_ip, P_CLIENT_DETAIL_INFO_TABLE p_client_detail
 		fixstr(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
 		NMP_DEBUG_F("Get device name from dhcp lease: %s\n", 
 		p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
-	}
-
-	return 1;
-}
-
-
-int FindHostname(P_CLIENT_DETAIL_INFO_TABLE p_client_detail_info_tab)
-{
-	unsigned char *dest_ip = p_client_detail_info_tab->ip_addr[p_client_detail_info_tab->detail_info_num];
-	char ipaddr[16];
-	sprintf(ipaddr, "%d.%d.%d.%d",(int)*(dest_ip),(int)*(dest_ip+1),(int)*(dest_ip+2),(int)*(dest_ip+3));
-
-	char *nv, *nvp, *b;
-	char *mac, *ip, *name, *expire;
-	FILE *fp;
-	char line[256];
-	char *next;
-
-// Get current hostname from DHCP leases
-	if (!nvram_get_int("dhcp_enable_x") || !nvram_match("sw_mode", "1"))
-		return 0;
-
-	if ((fp = fopen("/var/lib/misc/dnsmasq.leases", "r"))) {
-		while ((next = fgets(line, sizeof(line), fp)) != NULL) {
-			if (vstrsep(next, " ", &expire, &mac, &ip, &name) == 4) {
-				if ((!strcmp(ipaddr, ip)) &&
-				    (strlen(name) > 0) &&
-				    (!strchr(name, '*')) &&	// Ensure it's not a clientid in
-				    (!strchr(name, ':')))	// case device didn't have a hostname
-						strncpy(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num], name, 15);
-			}
-		}
-		fclose(fp);
-	}
-
-// Get names from static lease list, overruling anything else
-	nv = nvp = strdup(nvram_safe_get("dhcp_staticlist"));
-
-	 if (nv) {
-		while ((b = strsep(&nvp, "<")) != NULL) {
-			if ((vstrsep(b, ">", &mac, &ip, &name) == 3) && (strlen(ip) > 0) && (strlen(name) > 0)) {
-				if (!strcmp(ipaddr, ip))
-					strncpy(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num], name, 15);
-			}
-		}
-		free(nv);
 	}
 
 	return 1;

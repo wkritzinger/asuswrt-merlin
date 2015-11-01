@@ -10,6 +10,9 @@
 <link rel="icon" href="images/favicon.png">
 <title>ASUS Login</title>
 <style>
+body{
+	font-family: Arial;
+}
 .wrapper{
 	background:url(images/New_ui/login_bg.png) #283437 no-repeat;
 	background-size: 1280px 1076px;
@@ -17,13 +20,14 @@
 	margin: 0px; 
 }
 .title_name {
-	font-size: 40pt;
+	font-size: 30pt;
 	color:#93d2d9;
 }
 .prod_madelName{
-	font-size: 26pt;
+	font-size: 20pt;
 	color:#fff;
 	margin-left:78px;
+	margin-top: 10px;
 }
 .login_img{
 	width:43px;
@@ -32,8 +36,9 @@
 	background-repeat: no-repeat;
 }
 .p1{
-	font-size: 16pt;
+	font-size: 12pt;
 	color:#fff;
+	width:480px;
 }
 .button{
 	background-color:#007AFF;
@@ -41,38 +46,41 @@
 	border: solid 1px #6e8385;*/
 	border-radius: 4px ;
 	transition: visibility 0s linear 0.218s,opacity 0.218s,background-color 0.218s;
-	height: 68px;
-	width: 300px;
-	font-size: 28pt;
+	height: 48px;
+	width: 200px;
+	font-size: 14pt;
 	color:#fff;
 	color:#000\9; /* IE6 IE7 IE8 */
 	text-align: center;
 	float:right; 
-	margin:50px 0px 0px 78px;
-	line-height:68px;
+	margin:25px 79px 0px 39px;
+	line-height:48px;
+}
+.button:hover{
+	cursor:pointer;
 }
 .form_input{
 	background-color:rgba(255,255,255,0.2);
 	border-radius: 4px;
-	padding:26px 22px;
-	width: 480px;
+	padding:13px 11px;
+	width: 380px;
 	border: 0;
 	height:25px;
 	color:#fff;
 	color:#000\9; /* IE6 IE7 IE8 */
-	font-size:28px
+	font-size:18px
 }
 .nologin{
 	margin:10px 0px 0px 78px;
 	background-color:rgba(255,255,255,0.2);
 	padding:20px;
-	line-height:36px;
+	line-height:18px;
 	border-radius: 5px;
-	width: 480px;
+	width: 380px;
 	border: 0;
 	color:#fff;
 	color:#000\9; /* IE6 IE7 IE8 */
-	font-size:28px;
+	font-size:16px;
 }
 .div_table{
 	display:table;
@@ -96,9 +104,16 @@
 .error_hint{
 	color: rgb(255, 204, 0);
 	margin:10px 0px -10px 78px; 
+	font-size: 12px;
+	font-weight: bolder;
 }
 .main_field_gap{
 	margin:100px auto 0;
+}
+.warming_desc{
+	font-size: 12px;
+	color:#FC0;
+	width: 600px;
 }
 
 /*for mobile device*/
@@ -114,6 +129,7 @@
 	}
 	.p1{
 		font-size: 12pt;
+		width:100%;
 	}
 	.login_img{
 		background-size: 75%;
@@ -126,12 +142,13 @@
 	}
 	.button{
 		height: 50px;
-		width: 150px;
+		width: 100%;
 		font-size: 14pt;
 		text-align: center;
 		float:right; 
-		margin: 25px -20px 40px 25px;; 
+		margin: 25px -22px 40px 15px;
 		line-height:50px;
+		padding-left: 7px;
 	}
 	.nologin{
 		margin-left:10px; 
@@ -158,16 +175,22 @@
 		padding-right:0;
 		vertical-align:middle;
 	}
+	.warming_desc{
+		margin: 10px 15px;
+		width: 100%; 
+	}
 }
 </style>
 <script>
-<% login_state_hook(); %>
-var dhcpLeaseInfo = <% IP_dhcpLeaseInfo(); %>;
-
-var flag = '<% get_parameter("error_status"); %>';
-var redirect_page = '<% get_parameter("page"); %>';
-
 function initial(){
+	var flag = '<% get_parameter("error_status"); %>';
+
+	if('<% check_asus_model(); %>' == '0'){
+		document.getElementById("warming_field").style.display ="";
+		disable_input();
+		disable_button();
+	}
+
 	if(flag != ""){
 		document.getElementById("error_status_field").style.display ="";
 		if(flag == 3)
@@ -176,47 +199,82 @@ function initial(){
 			document.getElementById("error_status_field").innerHTML ="* Detect abnormal logins many times, please try again after 1 minute.";
 			document.form.login_username.disabled = true;
 			document.form.login_passwd.disabled = true;
-		}else if(flag == 9){
-			var thehostName = "";
-			for(var i=0; i<dhcpLeaseInfo.length; i++){
-				if(dhcpLeaseInfo[i][0] == login_ip_str())
-					thehostName = " (" + dhcpLeaseInfo[i][1] + ")";
-			}
-			document.getElementById("login_filed").style.display ="none";
-			document.getElementById("nologin_field").style.display ="";			
-			document.getElementById("logined_ip_str").innerHTML = login_ip_str() + thehostName;
 		}else if(flag == 8){
 			document.getElementById("login_filed").style.display ="none";
 			document.getElementById("logout_field").style.display ="";
+		}else if(flag == 9){
+			<% login_state_hook(); %> 
+
+			var loginUserIp = (function(){
+				return (typeof login_ip_str === "function") ? login_ip_str().replace("0.0.0.0", "") : "";
+			})();
+
+			var getLoginUser = function(){
+				if(loginUserIp === "") return "";
+
+				var dhcpLeaseInfo = <% IP_dhcpLeaseInfo(); %>
+				var hostName = "";
+
+				dhcpLeaseInfo.forEach(function(elem){
+				if(elem[0] === loginUserIp){
+					hostName = " (" + elem[1] + ")";
+					return false;
+					}
+				})
+				return "<div style='margin-top:15px;word-wrap:break-word;word-break:break-all'>* <#login_hint1#> " + loginUserIp + hostName + "</div>";
+			};
+
+			document.getElementById("logined_ip_str").innerHTML = getLoginUser();
+
+			document.getElementById("login_filed").style.display ="none";
+			document.getElementById("nologin_field").style.display ="";
 		}else
 			document.getElementById("error_status_field").style.display ="none";
 	}
 
 	document.form.login_username.focus();
+
 	/*register keyboard event*/
 	document.form.login_username.onkeyup = function(e){
+		e=e||event;
 		if(e.keyCode == 13){
 			document.form.login_passwd.focus();
+			return false;
 		}
+	};
+	document.form.login_username.onkeypress = function(e){
+		e=e||event;
+		if(e.keyCode == 13){
+			return false;		}
 	};
 
 	document.form.login_passwd.onkeyup = function(e){
+		e=e||event;
 		if(e.keyCode == 13){
 			login();
+			return false;
+		}
+	};
+	document.form.login_passwd.onkeypress = function(e){
+		e=e||event;
+		if(e.keyCode == 13){
+			return false;
 		}
 	};
 
 	if(history.pushState != undefined) history.pushState("", document.title, window.location.pathname);
 }
 
-function trim(val){
-	val = val+'';
-	for (var startIndex=0;startIndex<val.length && val.substring(startIndex,startIndex+1) == ' ';startIndex++);
-	for (var endIndex=val.length-1; endIndex>startIndex && val.substring(endIndex,endIndex+1) == ' ';endIndex--);
-	return val.substring(startIndex,endIndex+1);
-}
-
 function login(){
+	var redirect_page = '<% get_parameter("page"); %>';
+
+	var trim = function(val){
+		val = val+'';
+		for (var startIndex=0;startIndex<val.length && val.substring(startIndex,startIndex+1) == ' ';startIndex++);
+		for (var endIndex=val.length-1; endIndex>startIndex && val.substring(endIndex,endIndex+1) == ' ';endIndex--);
+		return val.substring(startIndex,endIndex+1);
+	}
+
 	if(!window.btoa){
 		window.btoa = function(input){
 			var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -270,12 +328,21 @@ function login(){
 	document.form.login_authorization.value = btoa(document.form.login_username.value + ':' + document.form.login_passwd.value);
 	document.form.login_username.disabled = true;
 	document.form.login_passwd.disabled = true;
-	document.form.foilautofill.disabled = true;
 	if(redirect_page == "" || redirect_page == "Logout.asp" || redirect_page == "Main_Login.asp")
 		document.form.next_page.value = "index.asp";
 	else
 		document.form.next_page.value = redirect_page;
 	document.form.submit();
+}
+
+function disable_input(){
+	var disable_input_x = document.getElementsByClassName('form_input');
+	for(i=0;i<disable_input_x.length;i++)
+		disable_input_x[i].disabled = true;
+}
+
+function disable_button(){
+	document.getElementsByClassName('button')[0].style.display = "none";
 }
 </script>
 </head>
@@ -289,11 +356,10 @@ function login(){
 <input type="hidden" name="action_wait" value="5">
 <input type="hidden" name="current_page" value="Main_Login.asp">
 <input type="hidden" name="next_page" value="Main_Login.asp">
-<input type="hidden" name="flag" value="">
 <input type="hidden" name="login_authorization" value="">
-<input name="foilautofill" style="display: none;" type="password">
 <div class="div_table main_field_gap">
 	<div class="div_tr">
+		<div id="warming_field" style="display:none;" class="warming_desc">Note: the router you are using is not an ASUS device or has not been authorised by ASUS. ASUSWRT might not work properly on this device.</div>
 		<div class="title_name">
 			<div class="div_td img_gap">
 				<div class="login_img"></div>
@@ -301,32 +367,38 @@ function login(){
 			<div class="div_td">SIGN IN</div>
 		</div>	
 		<div class="prod_madelName"><#Web_Title2#></div>
+
+		<!-- Login field -->
 		<div id="login_filed">
 			<div class="p1 title_gap"><#Sign_in_title#></div>
 			<div class="title_gap">
 				<input type="text" id="login_username" name="login_username" tabindex="1" class="form_input" maxlength="20" autocapitalization="off" autocomplete="off" placeholder="<#HSDPAConfig_Username_itemname#>">
 			</div>
 			<div class="password_gap">
-				<input type="password" name="login_passwd" tabindex="2" class="form_input" maxlength="16" onpaste="return false;" placeholder="<#HSDPAConfig_Password_itemname#>" autocapitalization="off" autocomplete="off">
+				<input type="password" name="login_passwd" tabindex="2" class="form_input" maxlength="16" placeholder="<#HSDPAConfig_Password_itemname#>" autocapitalization="off" autocomplete="off">
 			</div>
 			<div class="error_hint" style="display:none;" id="error_status_field"></div>
 				<div class="button" onclick="login();"><#CTL_signin#></div>
 		</div>
 		
-		<!--No Login field-->
+		<!-- No Login field -->
 		<div id="nologin_field" style="display:none;">
-			<div class="p1 title_gap">Login Status</div>
+			<div class="p1 title_gap"></div>
 			<div class="nologin">
-				<#login_hint1#><span id="logined_ip_str"></span><br><span><#login_hint2#></span>
+				<#login_hint2#>
+				<div id="logined_ip_str"></div>
 			</div>
 		</div>
+
+		<!-- Logout field -->
 		<div id="logout_field" style="display:none;">
-			<div class="p1 title_gap">Login Status</div>
-			<div class="nologin"><#logoutmessage#></div>		
+			<div class="p1 title_gap"></div>
+			<div class="nologin"><#logoutmessage#>
+				<br><br>Click <a style="color: #FFFFFF; font-weight: bolder;text-decoration:underline;" class="hyperlink" href="Main_Login.asp">here</a> to log back in.
+			</div>
 		</div>
 	</div>
 </div>
 </form>
 </body>
 </html>
-
